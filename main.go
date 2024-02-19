@@ -1,18 +1,16 @@
 package main
 
 import (
+	"github.com/go-playground/validator/v10"
+	"github.com/rs/zerolog/log"
 	"golang-crud-gin/config"
 	"golang-crud-gin/controller"
 	_ "golang-crud-gin/docs"
 	"golang-crud-gin/helper"
-	"golang-crud-gin/model"
 	"golang-crud-gin/repository"
 	"golang-crud-gin/router"
 	"golang-crud-gin/service"
 	"net/http"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/rs/zerolog/log"
 )
 
 // @title 	Tag Service API
@@ -28,10 +26,8 @@ func main() {
 	db := config.DatabaseConnection()
 	validate := validator.New()
 
-	db.Table("tags").AutoMigrate(&model.Tags{})
-
 	// Repository
-	tagsRepository := repository.NewTagsREpositoryImpl(db)
+	tagsRepository := repository.NewTagsRepositoryImpl(db)
 
 	// Service
 	tagsService := service.NewTagsServiceImpl(tagsRepository, validate)
