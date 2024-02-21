@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+	"fmt"
 	"golang-crud-gin/data/request"
 	"golang-crud-gin/data/response"
 	"golang-crud-gin/helper"
@@ -27,7 +29,7 @@ func (t *TagsServiceImpl) Create(tags request.CreateTagsRequest) {
 	err := t.Validate.Struct(tags)
 	helper.ErrorPanic(err)
 	tagModel := model.Tags{
-		Name: tags.Name,
+		Name: &tags.Name,
 	}
 	t.TagsRepository.Save(tagModel)
 }
@@ -44,8 +46,8 @@ func (t *TagsServiceImpl) FindAll() []response.TagsResponse {
 	var tags []response.TagsResponse
 	for _, value := range result {
 		tag := response.TagsResponse{
-			Id:   value.Id,
-			Name: value.Name,
+			Id:   *value.Id,
+			Name: *value.Name,
 		}
 		tags = append(tags, tag)
 	}
@@ -58,16 +60,19 @@ func (t *TagsServiceImpl) FindById(tagsId int) response.TagsResponse {
 	tagData, err := t.TagsRepository.FindById(tagsId)
 	helper.ErrorPanic(err)
 
-	tagResponse := response.TagsResponse{
-		Id:   tagData.Id,
-		Name: tagData.Name,
+	if tagData.Id != nil {
+		return response.TagsResponse{
+			Id:   *tagData.Id,
+			Name: *tagData.Name,
+		}
+	} else {
+		panic(errors.New(fmt.Sprintf("no Tag found by id %d", tagsId)))
 	}
-	return tagResponse
 }
 
 // Update implements TagsService
 func (t *TagsServiceImpl) Update(tags request.UpdateTagsRequest) {
-	tagData, err := t.TagsRepository.FindById(tags.Id)
+	tagData, err := t.TagsRepository.FindById(*tags.Id)
 	helper.ErrorPanic(err)
 	tagData.Name = tags.Name
 	t.TagsRepository.Update(tagData)

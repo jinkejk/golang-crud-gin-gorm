@@ -12,14 +12,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type TagsController struct {
-	tagsService service.TagsService
+func NewRequestModelController() *RequestModelController {
+	return &RequestModelController{
+		requestCurd: service.CreateRequestCurdFactory(),
+	}
 }
 
-func NewTagsController(service service.TagsService) *TagsController {
-	return &TagsController{
-		tagsService: service,
-	}
+type RequestModelController struct {
+	requestCurd *service.RequestsCurd
 }
 
 // Create Tags		godoc
@@ -30,13 +30,15 @@ func NewTagsController(service service.TagsService) *TagsController {
 // @Tags			tags
 // @Success			200 {object} response.Response{}
 // @Router			/tags [post]
-func (controller *TagsController) Create(ctx *gin.Context) {
-	log.Info().Msg("create tags")
-	createTagsRequest := request.CreateTagsRequest{}
+func (controller *RequestModelController) Create(ctx *gin.Context) {
+	log.Info().Msg("create request")
+	createTagsRequest := request.CreateRequestsModelRequest{}
 	err := ctx.ShouldBindJSON(&createTagsRequest)
 	helper.ErrorPanic(err)
 
-	controller.tagsService.Create(createTagsRequest)
+	err = controller.requestCurd.Save(&createTagsRequest)
+	helper.ErrorPanic(err)
+
 	webResponse := response.Response{
 		Code:   http.StatusOK,
 		Status: "Ok",
@@ -55,18 +57,19 @@ func (controller *TagsController) Create(ctx *gin.Context) {
 // @Produce			application/json
 // @Success			200 {object} response.Response{}
 // @Router			/tags/{tagId} [patch]
-func (controller *TagsController) Update(ctx *gin.Context) {
-	log.Info().Msg("update tags")
-	updateTagsRequest := request.UpdateTagsRequest{}
+func (controller *RequestModelController) Update(ctx *gin.Context) {
+	log.Info().Msg("update request")
+	updateTagsRequest := request.UpdateRequestsModelRequest{}
 	err := ctx.ShouldBindJSON(&updateTagsRequest)
 	helper.ErrorPanic(err)
 
-	tagId := ctx.Param("tagId")
-	id, err := strconv.Atoi(tagId)
+	requestId := ctx.Param("requestId")
+	id, err := strconv.Atoi(requestId)
 	helper.ErrorPanic(err)
-	updateTagsRequest.Id = &id
+	updateTagsRequest.Id = int64(id)
 
-	controller.tagsService.Update(updateTagsRequest)
+	err = controller.requestCurd.Update(&updateTagsRequest)
+	helper.ErrorPanic(err)
 
 	webResponse := response.Response{
 		Code:   http.StatusOK,
@@ -75,6 +78,7 @@ func (controller *TagsController) Update(ctx *gin.Context) {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
+
 }
 
 // Delete Tags		godoc
@@ -84,12 +88,14 @@ func (controller *TagsController) Update(ctx *gin.Context) {
 // @Tags			tags
 // @Success			200 {object} response.Response{}
 // @Router			/tags/{tagID} [delete]
-func (controller *TagsController) Delete(ctx *gin.Context) {
-	log.Info().Msg("delete tags")
-	tagId := ctx.Param("tagId")
-	id, err := strconv.Atoi(tagId)
+func (controller *RequestModelController) Delete(ctx *gin.Context) {
+	log.Info().Msg("delete request")
+	requestId := ctx.Param("requestId")
+	id, err := strconv.Atoi(requestId)
 	helper.ErrorPanic(err)
-	controller.tagsService.Delete(id)
+
+	err = controller.requestCurd.Delete(id)
+	helper.ErrorPanic(err)
 
 	webResponse := response.Response{
 		Code:   http.StatusOK,
@@ -108,18 +114,19 @@ func (controller *TagsController) Delete(ctx *gin.Context) {
 // @Tags				tags
 // @Success				200 {object} response.Response{}
 // @Router				/tags/{tagId} [get]
-func (controller *TagsController) FindById(ctx *gin.Context) {
-	log.Info().Msg("findbyid tags")
-	tagId := ctx.Param("tagId")
-	id, err := strconv.Atoi(tagId)
+func (controller *RequestModelController) FindById(ctx *gin.Context) {
+	log.Info().Msg("find by id requests")
+	requestId := ctx.Param("requestId")
+	id, err := strconv.Atoi(requestId)
 	helper.ErrorPanic(err)
 
-	tagResponse := controller.tagsService.FindById(id)
+	res, err := controller.requestCurd.FindById(id)
+	helper.ErrorPanic(err)
 
 	webResponse := response.Response{
 		Code:   http.StatusOK,
 		Status: "Ok",
-		Data:   tagResponse,
+		Data:   res,
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
@@ -131,15 +138,16 @@ func (controller *TagsController) FindById(ctx *gin.Context) {
 // @Tags			tags
 // @Success			200 {obejct} response.Response{}
 // @Router			/tags [get]
-func (controller *TagsController) FindAll(ctx *gin.Context) {
-	log.Info().Msg("findAll tags")
-	tagResponse := controller.tagsService.FindAll()
+func (controller *RequestModelController) FindAll(ctx *gin.Context) {
+	log.Info().Msg("findAll requests")
+	res, err := controller.requestCurd.FindAll()
+	helper.ErrorPanic(err)
+
 	webResponse := response.Response{
 		Code:   http.StatusOK,
 		Status: "Ok",
-		Data:   tagResponse,
+		Data:   res,
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
-
 }
