@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"golang-crud-gin/data/request"
 	"golang-crud-gin/data/response"
 	"golang-crud-gin/helper"
@@ -31,6 +32,7 @@ type RequestModelController struct {
 // @Success			200 {object} response.Response{}
 // @Router			/tags [post]
 func (controller *RequestModelController) Create(ctx *gin.Context) {
+	panic(errors.New("2121mlsasa"))
 	log.Info().Msg("create request")
 	createTagsRequest := request.CreateRequestsModelRequest{}
 	err := ctx.ShouldBindJSON(&createTagsRequest)
